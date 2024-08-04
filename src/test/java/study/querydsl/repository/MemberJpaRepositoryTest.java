@@ -63,12 +63,11 @@ class MemberJpaRepositoryTest {
 //        condition.setAgeLoe(40);
 //        condition.setTeamName("teamB");
 
-        List<MemberTeamDto> result = memberJpaRepository.searchByBuilder(condition);
+        List<MemberTeamDto> result = memberJpaRepository.search(condition);
 
         assertThat(result)
                 .extracting("username")
                 .containsExactlyInAnyOrder("member1", "member2", "member3", "member4");
-
     }
 
 }
