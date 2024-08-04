@@ -1,17 +1,18 @@
 package study.querydsl.repository;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.util.StringUtils.hasText;
 import static study.querydsl.entity.QMember.member;
@@ -108,17 +109,22 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .fetch();
 
         // 카운트 쿼리
-        Long count = Optional.ofNullable(queryFactory
+        JPAQuery<Long> countQuery = queryFactory
                 .select(member.count()) // SQL 상으로는 count(member.id)와 동일
                 .from(member)
+                .leftJoin(member.team, team)
                 .where(
                         usernameEq(condition.getUsername()),
                         teamNameEq(condition.getTeamName()),
                         ageGoe(condition.getAgeGoe()),
-                        ageLoe(condition.getAgeLoe()))
-                .fetchOne()).orElse(0L);
+                        ageLoe(condition.getAgeLoe()));
 
-        return new PageImpl<>(content, pageable, count);
+        // count 쿼리가 생략 가능한 경우 생략해서 처리
+        // 페이지 시작이면서 컨텐츠 사이즈가 페이지 사이즈보다 작을 때
+        // 마지막 페이지 일 때 (offset + 컨텐츠 사이즈를 더해서 전체 사이즈 구함,
+        // 더 정확히는 마지막 페이지이면 서 컨텐츠 사이즈가 페이지 사이즈보다 작을 때)
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     private Predicate usernameEq(String username) {
