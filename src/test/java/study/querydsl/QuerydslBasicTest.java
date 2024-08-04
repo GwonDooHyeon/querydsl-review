@@ -18,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -40,11 +39,11 @@ public class QuerydslBasicTest {
     @Autowired
     EntityManager em;
 
+    @Autowired
     JPAQueryFactory queryFactory;
 
     @BeforeEach
     void setUp() {
-        queryFactory = new JPAQueryFactory(em);
         Team a = new Team("teamA");
         Team b = new Team("teamB");
 
@@ -364,7 +363,7 @@ public class QuerydslBasicTest {
                                 JPAExpressions
                                         .select(memberSub.age)
                                         .from(memberSub)
-                                        .where(member.age.gt(10))
+                                        .where(memberSub.age.gt(10))
                         ))
                 .fetch();
 
@@ -615,7 +614,6 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    @Commit
     void bulkUpdate() {
 
         // member1 = 10 -> 비회원
